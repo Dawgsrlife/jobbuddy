@@ -48,10 +48,17 @@ JobBuddy is an AI-powered personal outbound job agent that finds relevant positi
 - **Intuitive navigation** and user experience
 - **Accessibility-first** approach
 
+### 🔐 Authentication & Security
+- **Clerk authentication** for secure user management
+- **Protected routes** for dashboard and user-specific features
+- **User-specific data** and personalized experiences
+- **Secure API endpoints** with proper authentication
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15 (App Router), React 18, TypeScript
 - **Backend**: Next.js API Routes, Server Actions
+- **Authentication**: Clerk for user management and authentication
 - **AI**: OpenAI GPT-4 for email generation and job matching
 - **Scraping**: Tavily API for job discovery
 - **Contact Finding**: LinkedIn API, Apollo.io, Hunter.io integration
@@ -64,6 +71,7 @@ JobBuddy is an AI-powered personal outbound job agent that finds relevant positi
 ### Prerequisites
 - Node.js 18+ installed
 - npm or yarn package manager
+- Clerk account and API keys
 - OpenAI API key
 - Tavily API key
 - SendGrid API key
@@ -91,6 +99,17 @@ JobBuddy is an AI-powered personal outbound job agent that finds relevant positi
    
    Add your API keys:
    \`\`\`
+   # Clerk Authentication
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
+   CLERK_SECRET_KEY=your_clerk_secret_key_here
+   
+   # Clerk URLs (optional - for custom domains)
+   NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+   NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+   NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+   NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+   
+   # Other API Keys
    OPENAI_API_KEY=your_openai_key
    TAVILY_API_KEY=your_tavily_key
    SENDGRID_API_KEY=your_sendgrid_key
@@ -107,6 +126,26 @@ JobBuddy is an AI-powered personal outbound job agent that finds relevant positi
 
 5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Clerk Authentication Setup
+
+1. **Create a Clerk account**
+   - Go to [clerk.com](https://clerk.com)
+   - Sign up and create a new application
+
+2. **Configure your application**
+   - Add your domain (localhost:3000 for development)
+   - Configure authentication methods (email, social logins)
+   - Set up user management settings
+
+3. **Get your API keys**
+   - Copy your Publishable Key and Secret Key
+   - Add them to your \`.env.local\` file
+
+4. **Customize authentication (optional)**
+   - Configure sign-in/sign-up pages
+   - Set up redirect URLs
+   - Customize user profile fields
 
 ### 1. Set Up Your Profile
 \`\`\`bash
@@ -142,9 +181,9 @@ jobbuddy/
 ├── src/
 │   ├── app/                    # Next.js App Router pages
 │   │   ├── page.tsx           # Job feed homepage
-│   │   ├── upload/            # Resume upload page
-│   │   ├── apply/             # Quick apply page
-│   │   ├── dashboard/         # User dashboard
+│   │   ├── upload/            # Resume upload page (protected)
+│   │   ├── apply/             # Quick apply page (protected)
+│   │   ├── dashboard/         # User dashboard (protected)
 │   │   └── api/               # API routes
 │   ├── components/            # Reusable React components
 │   │   ├── JobCard.tsx        # Job listing card component
@@ -169,31 +208,37 @@ jobbuddy/
 - Use the search bar to filter by job title and location
 - Click on job cards to view details or apply
 
-### 2. Upload Resume
-- Navigate to the "Upload Resume" page
+### 2. Upload Resume (Authenticated)
+- Sign in to access the upload page
 - Drag and drop your PDF or TXT resume file
 - Wait for AI processing to extract skills and keywords
 - Review extracted information for accuracy
 
-### 3. Quick Apply
-- Go to the "Quick Apply" page
+### 3. Quick Apply (Authenticated)
+- Go to the "Quick Apply" page (requires sign-in)
 - Review pre-filled application form (populated from your resume)
 - Customize cover letter if needed
 - Submit application with one click
 
-### 4. Set Up Your Profile
+### 4. Dashboard (Authenticated)
+- Access your personalized dashboard
+- View job matches and outreach activity
+- Configure target companies and preferences
+- Track application status and responses
+
+### 5. Set Up Your Profile
 - Upload your resume and set preferences
 - Key skills and experience
 - Preferred locations and job types
 - Target salary range
 
-### 5. Choose Target Companies
+### 6. Choose Target Companies
 - Select from popular companies or add custom ones
 - Google, Microsoft, Apple, Amazon
 - Stripe, Vercel, OpenAI, Anthropic
 - Startups, Fortune 500, or specific industries
 
-### 6. Let JobBuddy Work
+### 7. Let JobBuddy Work
 - Automated process runs every 4 hours
 - Scan target companies for new job postings
 - Calculate match scores based on your profile
@@ -202,6 +247,13 @@ jobbuddy/
 - Send emails and track responses
 
 ## 🔧 Configuration
+
+### Clerk API Setup
+1. Sign up at [Clerk.com](https://clerk.com)
+2. Create a new application
+3. Get your API keys from the dashboard
+4. Add them to your \`.env.local\` file
+5. Configure authentication methods and redirect URLs
 
 ### Tavily API Setup
 1. Sign up at [Tavily.com](https://tavily.com)
@@ -233,6 +285,7 @@ jobbuddy/
 - **Resume Parsing**: Enhance keyword extraction in lib/scraper.ts
 - **Email Templates**: Customize templates in lib/email-generator.ts
 - **Contact Finding**: Adjust integrations in lib/contact-finder.ts
+- **Authentication**: Configure Clerk settings in your dashboard
 
 ## 🚀 Deployment
 
@@ -254,18 +307,23 @@ jobbuddy/
 - Explain the value proposition clearly
 - Demonstrate the "skip job boards" approach
 
-### 2. Dashboard Setup (60 seconds)
+### 2. Authentication Demo (30 seconds)
+- Show Clerk authentication integration
+- Demonstrate sign-up/sign-in flow
+- Show user-specific dashboard
+
+### 3. Dashboard Setup (60 seconds)
 - Upload resume and extract skills automatically
 - Select target companies from popular list
 - Show real-time job matching with scores
 
-### 3. Outreach Demo (90 seconds)
+### 4. Outreach Demo (90 seconds)
 - Display found job matches with contact information
 - Show AI-generated personalized email
 - Demonstrate send process and tracking
 - Show mock responses and interview bookings
 
-### 4. Results & Impact (30 seconds)
+### 5. Results & Impact (30 seconds)
 - Display success metrics and user testimonials
 - Show ROI: time saved vs. traditional job searching
 - Highlight response rates vs. traditional applications
@@ -303,6 +361,7 @@ Inspired by modern, sleek portfolios:
 - **Opt-out mechanisms** in every email
 - **Professional tone** and frequency limits
 - **No spam** - quality over quantity approach
+- **Secure authentication** with Clerk
 
 ## 🌟 Future Roadmap
 
@@ -322,6 +381,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+- **Clerk** for authentication and user management
 - **OpenAI** for GPT-4 API
 - **Tavily** for job scraping capabilities
 - **Vercel** for hosting and deployment

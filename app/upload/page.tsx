@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useUser } from "@clerk/nextjs"
 import { Upload, FileText, CheckCircle, AlertCircle } from "lucide-react"
 
 export default function UploadPage() {
@@ -10,6 +11,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false)
   const [keywords, setKeywords] = useState<string[]>([])
   const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle")
+  const { user, isLoaded } = useUser()
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0]
@@ -59,6 +61,25 @@ export default function UploadPage() {
     event.preventDefault()
   }
 
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please sign in to upload your resume</h1>
+          <p className="text-gray-600">You need to be authenticated to use this feature.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
@@ -67,6 +88,9 @@ export default function UploadPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">📄 Upload Your Resume</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Upload your resume to extract key skills and get personalized job matches
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}!
           </p>
         </div>
 
@@ -82,6 +106,9 @@ export default function UploadPage() {
               </a>
               <a href="/apply" className="text-gray-600 hover:text-blue-600 transition-colors">
                 Quick Apply
+              </a>
+              <a href="/dashboard" className="text-gray-600 hover:text-blue-600 transition-colors">
+                Dashboard
               </a>
             </div>
           </nav>
@@ -167,8 +194,8 @@ export default function UploadPage() {
                 ))}
               </div>
               <div className="mt-6">
-                <a href="/" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Find Matching Jobs
+                <a href="/dashboard" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                  Go to Dashboard
                 </a>
               </div>
             </div>

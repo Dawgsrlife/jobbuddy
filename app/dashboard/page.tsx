@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useUser } from "@clerk/nextjs"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 import { JobMatchCard } from "@/components/dashboard/JobMatchCard"
 import { OutreachCard } from "@/components/dashboard/OutreachCard"
@@ -19,7 +20,7 @@ const mockJobs = [
     contactFound: true,
     contactName: "Sarah Chen",
     contactRole: "Engineering Manager",
-    emailStatus: "ready",
+    emailStatus: "ready" as const,
   },
   {
     id: "2",
@@ -32,7 +33,7 @@ const mockJobs = [
     contactFound: true,
     contactName: "Lee Robinson",
     contactRole: "VP of Developer Experience",
-    emailStatus: "sent",
+    emailStatus: "sent" as const,
   },
   {
     id: "3",
@@ -45,7 +46,7 @@ const mockJobs = [
     contactFound: false,
     contactName: "",
     contactRole: "",
-    emailStatus: "searching",
+    emailStatus: "searching" as const,
   },
 ]
 
@@ -56,7 +57,7 @@ const mockOutreach = [
     recipientRole: "Engineering Manager",
     company: "Stripe",
     jobTitle: "Senior Frontend Developer",
-    status: "responded",
+    status: "responded" as const,
     sentDate: "2024-01-15",
     responseDate: "2024-01-16",
     subject: "Interested in Frontend Developer role at Stripe",
@@ -67,7 +68,7 @@ const mockOutreach = [
     recipientRole: "VP of Developer Experience",
     company: "Vercel",
     jobTitle: "Full Stack Engineer",
-    status: "sent",
+    status: "sent" as const,
     sentDate: "2024-01-15",
     subject: "Full Stack Engineer opportunity at Vercel",
   },
@@ -75,9 +76,29 @@ const mockOutreach = [
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"jobs" | "outreach" | "settings">("jobs")
+  const { user, isLoaded } = useUser()
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please sign in to access your dashboard</h1>
+          <p className="text-gray-400">You need to be authenticated to view this page.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Background Effects */}
       <div className="fixed inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.05),transparent_50%)]" />
@@ -85,6 +106,14 @@ export default function DashboardPage() {
       <DashboardHeader />
 
       <div className="container mx-auto px-6 py-8 relative z-10">
+        {/* Welcome Message */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">
+            Welcome back, {user.firstName || user.emailAddresses[0]?.emailAddress}!
+          </h1>
+          <p className="text-gray-400">Here's what's happening with your job search today.</p>
+        </div>
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <StatsCard title="Jobs Found" value="23" subtitle="This week" color="blue" />

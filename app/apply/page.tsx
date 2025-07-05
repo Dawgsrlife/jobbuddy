@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useUser } from "@clerk/nextjs"
 import { User, Mail, Phone, MapPin, FileText, Send } from "lucide-react"
 
 export default function ApplyPage() {
@@ -17,6 +18,7 @@ export default function ApplyPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const { user, isLoaded } = useUser()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -37,6 +39,25 @@ export default function ApplyPage() {
     }, 2000)
   }
 
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please sign in to apply for jobs</h1>
+          <p className="text-gray-600">You need to be authenticated to use this feature.</p>
+        </div>
+      </div>
+    )
+  }
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
@@ -50,10 +71,10 @@ export default function ApplyPage() {
           </p>
           <div className="space-y-3">
             <a
-              href="/"
+              href="/dashboard"
               className="block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Find More Jobs
+              Go to Dashboard
             </a>
             <button
               onClick={() => setSubmitted(false)}
@@ -76,6 +97,9 @@ export default function ApplyPage() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Your information has been pre-filled from your resume. Review and submit with one click!
           </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}!
+          </p>
         </div>
 
         {/* Navigation */}
@@ -90,6 +114,9 @@ export default function ApplyPage() {
               </a>
               <a href="/apply" className="text-blue-600 font-semibold">
                 Quick Apply
+              </a>
+              <a href="/dashboard" className="text-gray-600 hover:text-blue-600 transition-colors">
+                Dashboard
               </a>
             </div>
           </nav>

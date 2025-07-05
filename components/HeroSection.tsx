@@ -3,42 +3,13 @@
 import { useState } from "react"
 import { ArrowRight, Sparkles, Target, Mail, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SignUpButton } from "@clerk/nextjs"
 
 export function HeroSection() {
   const [email, setEmail] = useState("")
 
   return (
     <section className="relative min-h-screen flex items-center justify-center px-4 py-20">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Target className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                JobBuddy
-              </span>
-            </div>
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-300 hover:text-white transition-colors">
-                Features
-              </a>
-              <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors">
-                How it Works
-              </a>
-              <a href="/dashboard" className="text-gray-300 hover:text-white transition-colors">
-                Dashboard
-              </a>
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 bg-transparent">
-                Sign In
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Content */}
       <div className="container mx-auto text-center relative z-10">
         {/* Badge */}
@@ -76,13 +47,31 @@ export function HeroSection() {
               className="bg-transparent text-white placeholder-gray-400 outline-none w-64"
             />
           </div>
-          <Button
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold flex items-center gap-2"
+          <SignUpButton mode="modal">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold flex items-center gap-2"
+            >
+              Start Job Hunting
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </SignUpButton>
+        </div>
+
+        {/* Scroll Navigation */}
+        <div className="flex justify-center gap-6 mb-8">
+          <a
+            href="#features"
+            className="text-gray-400 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-white/5"
           >
-            Start Job Hunting
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+            Features
+          </a>
+          <a
+            href="#how-it-works"
+            className="text-gray-400 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-white/5"
+          >
+            How It Works
+          </a>
         </div>
 
         {/* Features Preview */}

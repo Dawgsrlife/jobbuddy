@@ -1,5 +1,6 @@
 import { Target, Bell, Settings, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DashboardNav } from "./DashboardNav"
 
 export function DashboardHeader() {
   return (
@@ -19,14 +20,17 @@ export function DashboardHeader() {
             </div>
           </div>
 
-          {/* Status Indicator */}
-          <div className="hidden md:flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-sm text-green-400 font-medium">Agent Active</span>
+          {/* Navigation */}
+          <div className="relative">
+            <DashboardNav />
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-sm text-green-400 font-medium">Agent Active</span>
+            </div>
             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
               <Bell className="w-4 h-4" />
             </Button>

@@ -1,34 +1,40 @@
+"use client"
+
+import { useUser } from "@clerk/nextjs"
+import { SignUpButton } from "@clerk/nextjs"
 import { Upload, Target, Mail, BarChart3 } from "lucide-react"
 
 export function HowItWorksSection() {
+  const { user, isLoaded } = useUser()
+
   const steps = [
     {
       icon: Upload,
       title: "Upload Your Profile",
       description: "Share your resume, skills, and job preferences. Our AI learns what makes you unique.",
-      color: "blue",
+      color: "blue" as const,
     },
     {
       icon: Target,
       title: "Choose Target Companies",
       description: "Select your dream companies from our database of 10,000+ organizations.",
-      color: "purple",
+      color: "purple" as const,
     },
     {
       icon: Mail,
       title: "AI Sends Personalized Emails",
       description: "When relevant jobs appear, we craft and send professional emails to hiring managers.",
-      color: "green",
+      color: "green" as const,
     },
     {
       icon: BarChart3,
       title: "Track & Optimize",
       description: "Monitor responses, book interviews, and continuously improve your outreach strategy.",
-      color: "orange",
+      color: "orange" as const,
     },
   ]
 
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     blue: "from-blue-500 to-cyan-500",
     purple: "from-purple-500 to-pink-500",
     green: "from-green-500 to-emerald-500",
@@ -74,13 +80,22 @@ export function HowItWorksSection() {
 
         {/* CTA */}
         <div className="text-center mt-16">
-          <a
-            href="/dashboard"
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105"
-          >
-            Get Started Now
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-          </a>
+          {isLoaded && user ? (
+            <a
+              href="/dashboard"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105"
+            >
+              Go to Dashboard
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            </a>
+          ) : (
+            <SignUpButton mode="modal">
+              <button className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105">
+                Get Started Now
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              </button>
+            </SignUpButton>
+          )}
         </div>
       </div>
     </section>
