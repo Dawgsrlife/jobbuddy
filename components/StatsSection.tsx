@@ -4,14 +4,57 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Mail, TrendingUp, Calendar, Users } from "lucide-react"
 
+interface PublicStats {
+  emailsSent: number
+  responseRate: number
+  interviewsBooked: number
+  activeUsers: number
+  averageMatchScore: number
+  topSkillsInDemand: string[]
+  companiesTracked: number
+  jobsProcessedToday: number
+}
+
 export function StatsSection() {
   const [counts, setCounts] = useState({ emails: 0, responses: 0, interviews: 0, users: 0 })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setCounts({ emails: 12847, responses: 18, interviews: 342, users: 1250 })
-    }, 500)
-    return () => clearTimeout(timer)
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/stats/public')
+        const result = await response.json()
+        
+        if (result.success) {
+          const stats: PublicStats = result.data
+          
+          // Animate the counters
+          setTimeout(() => {
+            setCounts({
+              emails: stats.emailsSent,
+              responses: stats.responseRate,
+              interviews: stats.interviewsBooked,
+              users: stats.activeUsers
+            })
+          }, 500)
+        } else {
+          // Fallback to static numbers
+          setTimeout(() => {
+            setCounts({ emails: 12847, responses: 18, interviews: 342, users: 1250 })
+          }, 500)
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+        // Fallback to static numbers
+        setTimeout(() => {
+          setCounts({ emails: 12847, responses: 18, interviews: 342, users: 1250 })
+        }, 500)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStats()
   }, [])
 
   const stats = [

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useUser, useClerk } from "@clerk/nextjs"
-import { User, Settings, LogOut, ChevronDown, Bell } from "lucide-react"
+import { User, Settings, LogOut, ChevronDown, Bell, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function UserProfileDropdown() {
@@ -27,6 +27,31 @@ export function UserProfileDropdown() {
       await signOut()
     } catch (error) {
       console.error("Error signing out:", error)
+    }
+  }
+
+  const handleDownloadResume = async () => {
+    try {
+      setIsOpen(false)
+      const response = await fetch('/api/resume/download')
+      
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'resume.pdf' // Default filename
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to download resume')
+      }
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Failed to download resume. Please try again.')
     }
   }
 
@@ -119,6 +144,15 @@ export function UserProfileDropdown() {
             >
               <Bell className="w-4 h-4 mr-3" />
               Notifications
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-white hover:bg-white/10"
+              onClick={handleDownloadResume}
+            >
+              <Download className="w-4 h-4 mr-3" />
+              Download Resume
             </Button>
           </div>
 

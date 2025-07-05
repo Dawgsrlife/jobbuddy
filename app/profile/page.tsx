@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 import { 
   User, 
@@ -35,6 +36,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const { user, isLoaded } = useUser()
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
@@ -95,14 +97,8 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to view your profile</h1>
-          <p className="text-gray-400">You need to be authenticated to view this page.</p>
-        </div>
-      </div>
-    )
+    router.push("/")
+    return null
   }
 
   const handleProfileUpdate = (field: keyof UserProfile, value: any) => {
@@ -121,12 +117,33 @@ export default function ProfilePage() {
     handleProfileUpdate("preferredCompanies", companiesArray)
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       setResumeFile(file)
-      // In a real app, you'd upload to cloud storage and get URL
-      handleProfileUpdate("resumeUrl", URL.createObjectURL(file))
+      
+      // Upload to Supabase storage
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        
+        const response = await fetch('/api/resume/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        
+        const data = await response.json()
+        
+        if (data.success) {
+          handleProfileUpdate("resumeUrl", data.resumeUrl)
+        } else {
+          console.error('Resume upload failed:', data.error)
+          alert('Failed to upload resume. Please try again.')
+        }
+      } catch (error) {
+        console.error('Resume upload error:', error)
+        alert('Failed to upload resume. Please try again.')
+      }
     }
   }
 
@@ -172,6 +189,30 @@ export default function ProfilePage() {
     // Reload original profile from database
     await loadUserProfile()
     setIsEditing(false)
+  }
+
+  const handleDownloadResume = async () => {
+    try {
+      const response = await fetch('/api/resume/download')
+      
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'resume.pdf' // Default filename
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to download resume')
+      }
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Failed to download resume. Please try again.')
+    }
   }
 
   return (
@@ -380,20 +421,29 @@ export default function ProfilePage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={handleDownloadResume}
                       className="border-white/20 text-white hover:bg-white/10"
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Download
                     </Button>
                     {isEditing && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-white/20 text-white hover:bg-white/10"
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Replace
-                      </Button>
+                      <>
+                        <input
+                          type="file"
+                          id="resume-replace"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="resume-replace"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white border border-white/20 rounded-md hover:bg-white/10 cursor-pointer transition-colors"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Replace
+                        </label>
+                      </>
                     )}
                   </div>
                 </div>

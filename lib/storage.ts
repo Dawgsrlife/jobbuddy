@@ -1,6 +1,17 @@
-import { supabase } from './supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export const RESUME_BUCKET = 'resumes'
+
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables. Please set SUPABASE_URL and SUPABASE_ANON_KEY in your .env.local file.');
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey);
+}
 
 export interface UploadResult {
   success: boolean
@@ -22,6 +33,8 @@ export async function uploadResume(
   userId: string
 ): Promise<UploadResult> {
   try {
+    const supabase = getSupabaseClient()
+    
     // Generate unique filename
     const fileExt = file.name.split('.').pop()
     const fileName = `${userId}-${Date.now()}.${fileExt}`
@@ -62,6 +75,8 @@ export async function downloadResume(
   resumeUrl: string
 ): Promise<DownloadResult> {
   try {
+    const supabase = getSupabaseClient()
+    
     // Extract file path from URL
     const url = new URL(resumeUrl)
     const pathParts = url.pathname.split('/')
@@ -100,6 +115,8 @@ export async function deleteResume(
   resumeUrl: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const supabase = getSupabaseClient()
+    
     // Extract file path from URL
     const url = new URL(resumeUrl)
     const pathParts = url.pathname.split('/')
