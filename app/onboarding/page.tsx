@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import CreatableSelect from "react-select/creatable"
 import { MultiValue, ActionMeta } from "react-select"
+import { useEffect } from "react"
 
 interface UserProfile {
   name: string
@@ -42,6 +43,7 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState("")
   
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
@@ -52,6 +54,17 @@ export default function OnboardingPage() {
     preferredCompanies: [],
     resumeUrl: ""
   })
+
+  // Pre-populate user data from Clerk
+  useEffect(() => {
+    if (user && isLoaded) {
+      setProfile(prev => ({
+        ...prev,
+        name: user.fullName || prev.name,
+        email: user.emailAddresses[0]?.emailAddress || prev.email,
+      }))
+    }
+  }, [user, isLoaded])
 
   const [skillsOptions, setSkillsOptions] = useState<Option[]>([])
   const [companiesOptions, setCompaniesOptions] = useState<Option[]>([])
@@ -97,8 +110,25 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    setSubmitError("")
     
+    // Validate required fields
+    if (!profile.name.trim() || !profile.email.trim() || !profile.profession.trim() || !profile.experience) {
+      setSubmitError('Please fill in all required fields')
+      setIsSubmitting(false)
+      return
+    }
+
     try {
+      console.log('Submitting onboarding data:', {
+        name: profile.name,
+        email: profile.email,
+        profession: profile.profession,
+        experience: profile.experience,
+        skillsCount: profile.skills.length,
+        companiesCount: profile.preferredCompanies.length
+      })
+
       const response = await fetch('/api/onboarding', {
         method: 'POST',
         headers: {
@@ -115,22 +145,39 @@ export default function OnboardingPage() {
         }),
       })
 
-      const data = await response.json()
-      
+      let data
+      if (response.ok) {
+        data = await response.json()
+        console.log('Onboarding response:', data)
+      } else {
+        // Try to get error message from response
+        try {
+          const errorData = await response.json()
+          console.error('Onboarding error response:', errorData)
+          setSubmitError(errorData.error || errorData.details || 'Failed to save profile')
+        } catch {
+          const text = await response.text()
+          console.error('Onboarding error text:', text)
+          setSubmitError(text || 'An unknown error occurred. Please try again later.')
+        }
+        setIsSubmitting(false)
+        return
+      }
+
       if (data.success) {
-        // Keep localStorage as fallback for now
-        localStorage.setItem("userProfile", JSON.stringify(profile))
+        console.log('Profile saved successfully, redirecting to dashboard')
         localStorage.setItem("profileCompleted", "true")
-        
         setIsSubmitting(false)
         router.push("/dashboard")
       } else {
-        throw new Error(data.error || 'Failed to save profile')
+        console.error('Onboarding failed:', data)
+        setSubmitError(data.error || 'Failed to save profile')
+        setIsSubmitting(false)
       }
     } catch (error) {
-      console.error('Error saving profile:', error)
+      console.error('Onboarding network error:', error)
+      setSubmitError('Network error. Please check your connection and try again.')
       setIsSubmitting(false)
-      // You might want to show an error message to the user here
     }
   }
 
@@ -293,7 +340,7 @@ export default function OnboardingPage() {
       <div>
         <Label htmlFor="companies" className="flex items-center gap-2 text-white">
           <Building2 className="w-4 h-4" />
-          Preferred Companies (Optional)
+          Preferred Companies *
         </Label>
         <div className="mt-2">
           <CreatableSelect
@@ -406,11 +453,11 @@ export default function OnboardingPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return profile.name && profile.email && profile.profession
+        return profile.name.trim() && profile.email.trim() && profile.profession.trim()
       case 2:
         return profile.skills.length > 0 && profile.experience > 0
       case 3:
-        return true // Step 3 is optional
+        return profile.preferredCompanies.length > 0 // At least one company is required
       default:
         return false
     }
@@ -431,72 +478,82 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Background Effects */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.05),transparent_50%)]" />
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Complete Your Profile</h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Help us find the perfect jobs for you by sharing your professional details
-          </p>
-        </div>
-
-        {/* Progress Steps */}
-        <div className="flex justify-center mb-8">
-          <div className="flex space-x-4">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Welcome to JobBuddy
+          </h1>
+          <p className="text-xl text-gray-300 mb-8">Let's set up your profile to get started</p>
+          
+          {/* Progress Steps */}
+          <div className="flex justify-center items-center gap-8 mb-8">
             {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    currentStep >= step.number
-                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                      : "bg-white/10 text-gray-400"
-                  }`}
-                >
+              <div key={index} className="flex items-center gap-2">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                  currentStep >= step.number 
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" 
+                    : "bg-white/10 text-gray-400"
+                }`}>
                   {step.number}
                 </div>
+                <div className="text-left">
+                  <div className={`font-medium ${currentStep >= step.number ? "text-white" : "text-gray-400"}`}>
+                    {step.title}
+                  </div>
+                  <div className="text-sm text-gray-500">{step.description}</div>
+                </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`w-16 h-0.5 mx-2 ${
-                      currentStep > step.number ? "bg-gradient-to-r from-blue-500 to-purple-500" : "bg-white/10"
-                    }`}
-                  />
+                  <ArrowRight className="w-4 h-4 text-gray-500 mx-4" />
                 )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Current Step Title */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-semibold mb-2">{steps[currentStep - 1].title}</h2>
-          <p className="text-gray-400">{steps[currentStep - 1].description}</p>
-        </div>
-
-        {/* Form Content */}
+        {/* Form */}
         <div className="max-w-2xl mx-auto">
           <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
             {renderCurrentStep()}
+            
+            {/* Error Display */}
+            {submitError && (
+              <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-red-400 text-sm">{submitError}</p>
+              </div>
+            )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            {/* Navigation */}
+            <div className="flex justify-between items-center mt-8">
               <Button
                 variant="outline"
                 onClick={handleBack}
                 disabled={currentStep === 1}
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Back
               </Button>
+              
+              <div className="flex gap-2">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full ${
+                      i + 1 <= currentStep ? "bg-blue-500" : "bg-white/20"
+                    }`}
+                  />
+                ))}
+              </div>
 
               <Button
                 onClick={handleNext}
                 disabled={!canProceed() || isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
@@ -506,10 +563,7 @@ export default function OnboardingPage() {
                 ) : currentStep === 3 ? (
                   "Complete Setup"
                 ) : (
-                  <div className="flex items-center gap-2">
-                    Next
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
+                  "Next"
                 )}
               </Button>
             </div>

@@ -1,15 +1,33 @@
+"use client"
+
 import { Target, Bell, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardNav } from "./DashboardNav"
 import { UserProfileDropdown } from "../UserProfileDropdown"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 export function DashboardHeader() {
+  const { user } = useUser()
+  const router = useRouter()
+
+  const handleLogoClick = () => {
+    if (user) {
+      router.push('/dashboard')
+    } else {
+      router.push('/')
+    }
+  }
+
   return (
     <header className="border-b border-white/10 bg-black/80 backdrop-blur-md sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+          >
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Target className="w-4 h-4 text-white" />
             </div>
@@ -19,7 +37,7 @@ export function DashboardHeader() {
               </h1>
               <div className="text-xs text-gray-500">Dashboard</div>
             </div>
-          </div>
+          </button>
 
           {/* Navigation */}
           <div className="relative">

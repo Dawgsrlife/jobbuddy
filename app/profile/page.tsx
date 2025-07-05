@@ -51,19 +51,42 @@ export default function ProfilePage() {
 
   const [tempSkills, setTempSkills] = useState("")
   const [tempCompanies, setTempCompanies] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load profile from localStorage (in a real app, this would be from database)
-    const savedProfile = localStorage.getItem("userProfile")
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile)
-      setProfile(parsedProfile)
-      setTempSkills(parsedProfile.skills.join(", "))
-      setTempCompanies(parsedProfile.preferredCompanies.join(", "))
+    if (user) {
+      loadUserProfile()
     }
-  }, [])
+  }, [user])
 
-  if (!isLoaded) {
+  const loadUserProfile = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/onboarding')
+      const data = await response.json()
+      
+      if (data.success && data.profile) {
+        const userProfile = {
+          name: data.profile.name,
+          email: data.profile.email,
+          profession: data.profile.profession,
+          skills: data.profile.skills?.map((s: any) => s.skill) || [],
+          experience: data.profile.experience,
+          preferredCompanies: data.profile.preferredCompanies?.map((c: any) => c.companyName) || [],
+          resumeUrl: data.profile.resumeUrl || ""
+        }
+        setProfile(userProfile)
+        setTempSkills(userProfile.skills.join(", "))
+        setTempCompanies(userProfile.preferredCompanies.join(", "))
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!isLoaded || isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -110,25 +133,44 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true)
     
-    // Simulate API call to save profile
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // In a real app, you'd save to database
-    localStorage.setItem("userProfile", JSON.stringify(profile))
-    
-    setIsSaving(false)
-    setIsEditing(false)
+    try {
+      const response = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          email: profile.email,
+          profession: profile.profession,
+          experience: profile.experience,
+          skills: profile.skills,
+          preferredCompanies: profile.preferredCompanies,
+          resumeUrl: profile.resumeUrl,
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Reload the profile data to ensure it's in sync
+        await loadUserProfile()
+        setIsEditing(false)
+      } else {
+        console.error('Error saving profile:', data.error)
+        alert('Failed to save profile. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      alert('Failed to save profile. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const handleCancel = () => {
-    // Reload original profile
-    const savedProfile = localStorage.getItem("userProfile")
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile)
-      setProfile(parsedProfile)
-      setTempSkills(parsedProfile.skills.join(", "))
-      setTempCompanies(parsedProfile.preferredCompanies.join(", "))
-    }
+  const handleCancel = async () => {
+    // Reload original profile from database
+    await loadUserProfile()
     setIsEditing(false)
   }
 
