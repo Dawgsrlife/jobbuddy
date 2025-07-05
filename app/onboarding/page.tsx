@@ -11,8 +11,7 @@ import {
   Clock, 
   Building2, 
   Upload, 
-  ArrowRight, 
-  AlertTriangle,
+  ArrowRight,
   CheckCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,6 +19,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import CreatableSelect from "react-select/creatable"
+import { MultiValue, ActionMeta } from "react-select"
 
 interface UserProfile {
   name: string
@@ -31,12 +32,16 @@ interface UserProfile {
   resumeUrl?: string
 }
 
+interface Option {
+  value: string
+  label: string
+}
+
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showSkipWarning, setShowSkipWarning] = useState(false)
   
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
@@ -48,8 +53,8 @@ export default function OnboardingPage() {
     resumeUrl: ""
   })
 
-  const [tempSkills, setTempSkills] = useState("")
-  const [tempCompanies, setTempCompanies] = useState("")
+  const [skillsOptions, setSkillsOptions] = useState<Option[]>([])
+  const [companiesOptions, setCompaniesOptions] = useState<Option[]>([])
   const [resumeFile, setResumeFile] = useState<File | null>(null)
 
   if (!isLoaded) {
@@ -69,16 +74,16 @@ export default function OnboardingPage() {
     setProfile(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSkillsChange = (skillsString: string) => {
-    setTempSkills(skillsString)
-    const skillsArray = skillsString.split(",").map(skill => skill.trim()).filter(skill => skill.length > 0)
-    handleProfileUpdate("skills", skillsArray)
+  const handleSkillsChange = (selectedOptions: MultiValue<Option>, actionMeta: ActionMeta<Option>) => {
+    const skills = selectedOptions.map(option => option.value)
+    handleProfileUpdate("skills", skills)
+    setSkillsOptions([...selectedOptions])
   }
 
-  const handleCompaniesChange = (companiesString: string) => {
-    setTempCompanies(companiesString)
-    const companiesArray = companiesString.split(",").map(company => company.trim()).filter(company => company.length > 0)
-    handleProfileUpdate("preferredCompanies", companiesArray)
+  const handleCompaniesChange = (selectedOptions: MultiValue<Option>, actionMeta: ActionMeta<Option>) => {
+    const companies = selectedOptions.map(option => option.value)
+    handleProfileUpdate("preferredCompanies", companies)
+    setCompaniesOptions([...selectedOptions])
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,24 +98,40 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     
-    // Simulate API call to save profile
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // In a real app, you'd save to database
-    localStorage.setItem("userProfile", JSON.stringify(profile))
-    localStorage.setItem("profileCompleted", "true")
-    
-    setIsSubmitting(false)
-    router.push("/dashboard")
-  }
+    try {
+      const response = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          email: profile.email,
+          profession: profile.profession,
+          experience: profile.experience,
+          skills: profile.skills,
+          preferredCompanies: profile.preferredCompanies,
+          resumeUrl: profile.resumeUrl,
+        }),
+      })
 
-  const handleSkip = () => {
-    setShowSkipWarning(true)
-  }
-
-  const confirmSkip = () => {
-    localStorage.setItem("profileCompleted", "false")
-    router.push("/dashboard")
+      const data = await response.json()
+      
+      if (data.success) {
+        // Keep localStorage as fallback for now
+        localStorage.setItem("userProfile", JSON.stringify(profile))
+        localStorage.setItem("profileCompleted", "true")
+        
+        setIsSubmitting(false)
+        router.push("/dashboard")
+      } else {
+        throw new Error(data.error || 'Failed to save profile')
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      setIsSubmitting(false)
+      // You might want to show an error message to the user here
+    }
   }
 
   const steps = [
@@ -185,16 +206,64 @@ export default function OnboardingPage() {
           <Code className="w-4 h-4" />
           Skills *
         </Label>
-        <Textarea
-          id="skills"
-          value={tempSkills}
-          onChange={(e) => handleSkillsChange(e.target.value)}
-          placeholder="JavaScript, React, TypeScript, Node.js (comma-separated)"
-          className="mt-2 bg-white/5 border-white/10 text-white placeholder-gray-400"
-          rows={3}
-        />
+        <div className="mt-2">
+          <CreatableSelect
+            isMulti
+            value={skillsOptions}
+            onChange={handleSkillsChange}
+            placeholder="Type to add skills (e.g., JavaScript, React, TypeScript)"
+            className="text-black"
+            styles={{
+              control: (provided) => ({
+                ...provided,
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+              }),
+              menu: (provided) => ({
+                ...provided,
+                backgroundColor: 'rgb(17, 24, 39)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }),
+              option: (provided, state) => ({
+                ...provided,
+                backgroundColor: state.isFocused ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }),
+              multiValue: (provided) => ({
+                ...provided,
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+              }),
+              multiValueLabel: (provided) => ({
+                ...provided,
+                color: 'white',
+              }),
+              multiValueRemove: (provided) => ({
+                ...provided,
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                },
+              }),
+              input: (provided) => ({
+                ...provided,
+                color: 'white',
+              }),
+              placeholder: (provided) => ({
+                ...provided,
+                color: 'rgba(156, 163, 175)',
+              }),
+            }}
+          />
+        </div>
         <p className="text-sm text-gray-400 mt-1">
-          List your key skills separated by commas
+          Add your key skills. You can type to create new ones.
         </p>
       </div>
 
@@ -226,16 +295,64 @@ export default function OnboardingPage() {
           <Building2 className="w-4 h-4" />
           Preferred Companies (Optional)
         </Label>
-        <Textarea
-          id="companies"
-          value={tempCompanies}
-          onChange={(e) => handleCompaniesChange(e.target.value)}
-          placeholder="Google, Stripe, Vercel (comma-separated)"
-          className="mt-2 bg-white/5 border-white/10 text-white placeholder-gray-400"
-          rows={3}
-        />
+        <div className="mt-2">
+          <CreatableSelect
+            isMulti
+            value={companiesOptions}
+            onChange={handleCompaniesChange}
+            placeholder="Type to add companies (e.g., Google, Stripe, Vercel)"
+            className="text-black"
+            styles={{
+              control: (provided) => ({
+                ...provided,
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+              }),
+              menu: (provided) => ({
+                ...provided,
+                backgroundColor: 'rgb(17, 24, 39)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }),
+              option: (provided, state) => ({
+                ...provided,
+                backgroundColor: state.isFocused ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }),
+              multiValue: (provided) => ({
+                ...provided,
+                backgroundColor: 'rgba(147, 51, 234, 0.2)',
+                border: '1px solid rgba(147, 51, 234, 0.3)',
+              }),
+              multiValueLabel: (provided) => ({
+                ...provided,
+                color: 'white',
+              }),
+              multiValueRemove: (provided) => ({
+                ...provided,
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                },
+              }),
+              input: (provided) => ({
+                ...provided,
+                color: 'white',
+              }),
+              placeholder: (provided) => ({
+                ...provided,
+                color: 'rgba(156, 163, 175)',
+              }),
+            }}
+          />
+        </div>
         <p className="text-sm text-gray-400 mt-1">
-          Companies you'd like to work for
+          Companies you'd like to work for. You can type to add new ones.
         </p>
       </div>
 
@@ -376,69 +493,29 @@ export default function OnboardingPage() {
                 Back
               </Button>
 
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleSkip}
-                  className="border-white/20 text-white hover:bg-white/10"
-                >
-                  Skip for Now
-                </Button>
-
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed() || isSubmitting}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Saving...
-                    </div>
-                  ) : currentStep === 3 ? (
-                    "Complete Setup"
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      Next
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  )}
-                </Button>
-              </div>
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed() || isSubmitting}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Saving...
+                  </div>
+                ) : currentStep === 3 ? (
+                  "Complete Setup"
+                ) : (
+                  <div className="flex items-center gap-2">
+                    Next
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                )}
+              </Button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Skip Warning Modal */}
-      {showSkipWarning && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8 max-w-md mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="w-6 h-6 text-yellow-400" />
-              <h3 className="text-xl font-semibold">Skip Profile Setup?</h3>
-            </div>
-            <p className="text-gray-400 mb-6">
-              Without a complete profile, job matching will be limited and personalized features won't work optimally.
-            </p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowSkipWarning(false)}
-                className="border-white/20 text-white hover:bg-white/10"
-              >
-                Continue Setup
-              </Button>
-              <Button
-                onClick={confirmSkip}
-                className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white"
-              >
-                Skip Anyway
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 } 

@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useUser } from "@clerk/nextjs"
 import { User, Mail, Phone, MapPin, FileText, Send } from "lucide-react"
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 
 export default function ApplyPage() {
   const [formData, setFormData] = useState({
@@ -41,18 +42,18 @@ export default function ApplyPage() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
     )
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Please sign in to apply for jobs</h1>
-          <p className="text-gray-600">You need to be authenticated to use this feature.</p>
+          <p className="text-gray-400">You need to be authenticated to use this feature.</p>
         </div>
       </div>
     )
@@ -60,25 +61,25 @@ export default function ApplyPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Send className="w-8 h-8 text-green-600" />
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md text-center backdrop-blur-sm">
+          <div className="w-16 h-16 bg-green-500/20 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Send className="w-8 h-8 text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Sent! 🎉</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold mb-2">Application Sent! 🎉</h2>
+          <p className="text-gray-400 mb-6">
             Your application has been submitted successfully. The employer will review it and get back to you soon.
           </p>
           <div className="space-y-3">
             <a
               href="/dashboard"
-              className="block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              className="block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg transition-colors"
             >
               Go to Dashboard
             </a>
             <button
               onClick={() => setSubmitted(false)}
-              className="block w-full text-gray-600 hover:text-gray-800 transition-colors"
+              className="block w-full text-gray-400 hover:text-white transition-colors"
             >
               Apply to Another Job
             </button>
@@ -89,12 +90,18 @@ export default function ApplyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.05),transparent_50%)]" />
+
+      <DashboardHeader />
+
+      <div className="container mx-auto px-6 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">⚡ Quick Apply</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold mb-4">⚡ Quick Apply</h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             Your information has been pre-filled from your resume. Review and submit with one click!
           </p>
           <p className="text-sm text-gray-500 mt-2">
@@ -102,44 +109,24 @@ export default function ApplyPage() {
           </p>
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-center mb-8">
-          <nav className="bg-white rounded-full shadow-lg px-6 py-3">
-            <div className="flex space-x-6">
-              <a href="/" className="text-gray-600 hover:text-blue-600 transition-colors">
-                Job Feed
-              </a>
-              <a href="/upload" className="text-gray-600 hover:text-blue-600 transition-colors">
-                Upload Resume
-              </a>
-              <a href="/apply" className="text-blue-600 font-semibold">
-                Quick Apply
-              </a>
-              <a href="/dashboard" className="text-gray-600 hover:text-blue-600 transition-colors">
-                Dashboard
-              </a>
-            </div>
-          </nav>
-        </div>
-
         <div className="max-w-2xl mx-auto">
           {/* Job Info */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Applying for:</h2>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900">Frontend Developer</h3>
-              <p className="text-blue-700">TechCorp • San Francisco, CA</p>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 backdrop-blur-sm">
+            <h2 className="text-xl font-semibold mb-4">Applying for:</h2>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-400">Frontend Developer</h3>
+              <p className="text-blue-300">TechCorp • San Francisco, CA</p>
             </div>
           </div>
 
           {/* Application Form */}
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Application Details</h2>
+          <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+            <h2 className="text-2xl font-semibold mb-6">Application Details</h2>
 
             <div className="space-y-6">
               {/* Full Name */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
                   <User className="w-4 h-4" />
                   Full Name
                 </label>
@@ -148,14 +135,14 @@ export default function ApplyPage() {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                   required
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
                   <Mail className="w-4 h-4" />
                   Email Address
                 </label>
@@ -164,14 +151,14 @@ export default function ApplyPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                   required
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
                   <Phone className="w-4 h-4" />
                   Phone Number
                 </label>
@@ -180,14 +167,14 @@ export default function ApplyPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                   required
                 />
               </div>
 
               {/* Location */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
                   <MapPin className="w-4 h-4" />
                   Location
                 </label>
@@ -196,14 +183,14 @@ export default function ApplyPage() {
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                   required
                 />
               </div>
 
               {/* Cover Letter */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
                   <FileText className="w-4 h-4" />
                   Cover Letter
                 </label>
@@ -212,7 +199,7 @@ export default function ApplyPage() {
                   value={formData.coverLetter}
                   onChange={handleInputChange}
                   rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -223,7 +210,7 @@ export default function ApplyPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -240,7 +227,7 @@ export default function ApplyPage() {
             </div>
 
             {/* Note */}
-            <p className="text-sm text-gray-500 text-center mt-4">
+            <p className="text-sm text-gray-400 text-center mt-4">
               💡 Your information was automatically filled from your uploaded resume
             </p>
           </form>
