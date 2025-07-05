@@ -99,12 +99,35 @@ export default function OnboardingPage() {
     setCompaniesOptions([...selectedOptions])
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       setResumeFile(file)
-      // In a real app, you'd upload to cloud storage and get URL
-      handleProfileUpdate("resumeUrl", URL.createObjectURL(file))
+      
+      // Upload to Supabase storage
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        
+        const response = await fetch('/api/resume/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        
+        const data = await response.json()
+        
+        if (data.success) {
+          handleProfileUpdate("resumeUrl", data.resumeUrl)
+        } else {
+          console.error('Resume upload failed:', data.error)
+          // Keep local file for display purposes
+          handleProfileUpdate("resumeUrl", URL.createObjectURL(file))
+        }
+      } catch (error) {
+        console.error('Resume upload error:', error)
+        // Keep local file for display purposes
+        handleProfileUpdate("resumeUrl", URL.createObjectURL(file))
+      }
     }
   }
 

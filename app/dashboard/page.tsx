@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 import { JobMatchCard } from "@/components/dashboard/JobMatchCard"
 import { OutreachCard } from "@/components/dashboard/OutreachCard"
@@ -77,6 +78,7 @@ const mockOutreach = [
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"jobs" | "outreach" | "settings">("jobs")
   const { user, isLoaded } = useUser()
+  const router = useRouter()
 
   if (!isLoaded) {
     return (
@@ -87,14 +89,8 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to access your dashboard</h1>
-          <p className="text-gray-400">You need to be authenticated to view this page.</p>
-        </div>
-      </div>
-    )
+    router.push("/")
+    return null
   }
 
   return (
