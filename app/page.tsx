@@ -3,6 +3,8 @@ import { HeroSection } from "@/components/HeroSection"
 import { FeaturesSection } from "@/components/FeaturesSection"
 import { HowItWorksSection } from "@/components/HowItWorksSection"
 import { StatsSection } from "@/components/StatsSection"
+import { TestimonialsSection } from "@/components/TestimonialsSection"
+import { FinalCTASection } from "@/components/FinalCTASection"
 import { GlobalHeader } from "@/components/GlobalHeader"
 
 // Dummy data for initial development
@@ -59,13 +61,19 @@ const dummyJobs = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-indigo-100 text-gray-900 overflow-hidden">
       {/* Global Header */}
       <GlobalHeader />
       
-      {/* Background Effects */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+      {/* Beautiful Background Effects */}
+      <div className="fixed inset-0 bg-gradient-to-br from-pink-200/30 via-blue-200/30 to-indigo-200/30" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.1),transparent_40%)]" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(236,72,153,0.1),transparent_40%)]" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_60%_60%,rgba(59,130,246,0.08),transparent_50%)]" />
+
+      {/* Floating Elements */}
+      <div className="fixed top-20 left-10 w-72 h-72 bg-gradient-to-r from-pink-300/20 to-blue-300/20 rounded-full blur-3xl animate-pulse" />
+      <div className="fixed bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-indigo-300/20 to-purple-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
       {/* Authenticated users will be redirected by OnboardingRedirect component */}
       {/* This content is only shown to unauthenticated users */}
@@ -74,36 +82,21 @@ export default function HomePage() {
       <HeroSection />
 
       {/* Container */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Stats Section */}
         <StatsSection />
 
         {/* Features Section */}
         <FeaturesSection />
 
+        {/* Testimonials Section */}
+        <TestimonialsSection />
+
         {/* How It Works Section */}
         <HowItWorksSection />
 
-        {/* Job Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-          {dummyJobs.map((job) => (
-            <JobCard
-              key={job.id}
-              title={job.title}
-              company={job.company}
-              location={job.location}
-              url={job.url}
-              description={job.description}
-            />
-          ))}
-        </div>
-
-        {/* Load More Button */}
-        <div className="text-center mt-12">
-          <button className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
-            Load More Jobs
-          </button>
-        </div>
+        {/* Final CTA Section */}
+        <FinalCTASection />
       </div>
     </div>
   )
