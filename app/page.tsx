@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/HeroSection"
 import { FeaturesSection } from "@/components/FeaturesSection"
 import { HowItWorksSection } from "@/components/HowItWorksSection"
 import { StatsSection } from "@/components/StatsSection"
+import { GlobalHeader } from "@/components/GlobalHeader"
 
 // Dummy data for initial development
 const dummyJobs = [
@@ -59,10 +60,16 @@ const dummyJobs = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Global Header */}
+      <GlobalHeader />
+      
       {/* Background Effects */}
       <div className="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
 
+      {/* Authenticated users will be redirected by OnboardingRedirect component */}
+      {/* This content is only shown to unauthenticated users */}
+      
       {/* Hero Section */}
       <HeroSection />
 

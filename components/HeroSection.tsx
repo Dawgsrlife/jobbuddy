@@ -9,7 +9,7 @@ export function HeroSection() {
   const [email, setEmail] = useState("")
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 py-20">
+    <section className="relative min-h-screen flex items-center justify-center px-4 py-20 pt-32">
       {/* Hero Content */}
       <div className="container mx-auto text-center relative z-10">
         {/* Badge */}

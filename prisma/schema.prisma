@@ -1,0 +1,216 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Profile (linked to Clerk user ID)
+model UserProfile {
+  id                String   @id @default(cuid())
+  clerkUserId       String   @unique
+  email             String   @unique
+  name              String
+  profession        String
+  experience        Int      @default(0)
+  resumeUrl         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  isProfileComplete Boolean  @default(false)
+
+  // Relations
+  skills            UserSkill[]
+  preferredCompanies UserCompany[]
+  applications      Application[]
+  emails           Email[]
+  analytics        Analytics[]
+
+  @@map("user_profiles")
+}
+
+// User Skills (many-to-many with UserProfile)
+model UserSkill {
+  id            String      @id @default(cuid())
+  skill         String
+  userProfileId String
+  createdAt     DateTime    @default(now())
+
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([userProfileId, skill])
+  @@map("user_skills")
+}
+
+// User Preferred Companies (many-to-many with UserProfile)
+model UserCompany {
+  id            String      @id @default(cuid())
+  companyName   String
+  userProfileId String
+  createdAt     DateTime    @default(now())
+
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([userProfileId, companyName])
+  @@map("user_companies")
+}
+
+// Job Applications
+model Application {
+  id              String   @id @default(cuid())
+  userProfileId   String
+  jobTitle        String
+  company         String
+  location        String?
+  status          ApplicationStatus @default(APPLIED)
+  applicationType ApplicationType @default(COLD_EMAIL)
+  coverLetter     String?
+  notes           String?
+  appliedDate     DateTime @default(now())
+  lastUpdated     DateTime @updatedAt
+
+  // Email tracking
+  emailSent       Boolean  @default(false)
+  emailOpened     Boolean  @default(false)
+  emailReplied    Boolean  @default(false)
+  emailSentAt     DateTime?
+  emailOpenedAt   DateTime?
+  emailRepliedAt  DateTime?
+
+  // Relations
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  emails          Email[]
+  jobId           String?
+  job             Job? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@map("applications")
+}
+
+// Email Outreach
+model Email {
+  id              String   @id @default(cuid())
+  userProfileId   String
+  applicationId   String?
+  subject         String
+  content         String
+  recipientName   String
+  recipientRole   String
+  recipientEmail  String
+  company         String
+  status          EmailStatus @default(DRAFT)
+  createdAt       DateTime @default(now())
+  sentAt          DateTime?
+  openedAt        DateTime?
+  repliedAt       DateTime?
+
+  // Relations
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  application     Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@map("emails")
+}
+
+// Job Listings
+model Job {
+  id              String   @id @default(cuid())
+  title           String
+  company         String
+  location        String?
+  description     String?
+  url             String?
+  salary          String?
+  postedDate      DateTime?
+  matchScore      Int?
+  requirements    String[]
+  benefits        String[]
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  applications    Application[]
+
+  @@map("jobs")
+}
+
+// Contact Database (Hiring Managers)
+model Contact {
+  id              String   @id @default(cuid())
+  name            String
+  role            String
+  email           String
+  company         String
+  linkedinUrl     String?
+  confidence      Float    @default(0.0)
+  isVerified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([email, company])
+  @@map("contacts")
+}
+
+// Email Templates
+model EmailTemplate {
+  id              String   @id @default(cuid())
+  name            String
+  subject         String
+  content         String
+  isDefault       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("email_templates")
+}
+
+// Analytics & Performance Tracking
+model Analytics {
+  id              String   @id @default(cuid())
+  userProfileId   String
+  date            DateTime @default(now())
+  emailsSent      Int      @default(0)
+  emailsOpened    Int      @default(0)
+  emailsReplied   Int      @default(0)
+  applications    Int      @default(0)
+  interviews      Int      @default(0)
+  offers          Int      @default(0)
+
+  // Relations
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([userProfileId, date])
+  @@map("analytics")
+}
+
+// Enums
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEWING
+  REJECTED
+  ACCEPTED
+  NO_RESPONSE
+}
+
+enum ApplicationType {
+  COLD_EMAIL
+  JOB_PORTAL
+  DIRECT
+  REFERRAL
+}
+
+enum EmailStatus {
+  DRAFT
+  SENT
+  OPENED
+  REPLIED
+  BOUNCED
+}

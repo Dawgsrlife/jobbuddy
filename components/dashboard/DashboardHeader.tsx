@@ -1,6 +1,7 @@
-import { Target, Bell, Settings, User } from "lucide-react"
+import { Target, Bell, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardNav } from "./DashboardNav"
+import { UserProfileDropdown } from "../UserProfileDropdown"
 
 export function DashboardHeader() {
   return (
@@ -37,9 +38,7 @@ export function DashboardHeader() {
             <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
               <Settings className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-              <User className="w-4 h-4" />
-            </Button>
+            <UserProfileDropdown />
           </div>
         </div>
       </div>
